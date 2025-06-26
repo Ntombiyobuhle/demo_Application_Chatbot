@@ -18,11 +18,29 @@ namespace demo_Application_Chatbot
     {
         //cresting an instance for the class get reminder 
         get_reminder reminder = new get_reminder();
+
         string hold_task = string.Empty;
+        //call the load quiz method 
+        private List<QuizQuestion> quizData;
+
+        //variables
+        private int questionIndex = 0;
+        private int currentScore = 0;
+
+        //buttons
+        private Button selectedChoice = null;
+        private Button correctChoiceButton = null;
+
         public MainWindow()
         {
             InitializeComponent();
+            //call the load quiz method
+            LoadQuizData();
+            showQuiz();
+
         }
+
+
         private void chat(object sender, RoutedEventArgs e)
         {
             // hide other page and set chat page visible
@@ -74,105 +92,291 @@ namespace demo_Application_Chatbot
         }
         private void setting_reminder(object sender, RoutedEventArgs e)
         {
-            // temp variables to collect users input 
+            // temp variables to collect users input
             string temp_userTask = user_task.Text.ToString();
 
-            // check if EMPTY OR NOT 
-            if (reminder.vaildate_input(temp_userTask) != "found")
+            // check if EMPTY OR NOT
+            if (!string.IsNullOrEmpty(temp_userTask))
             {
-                // show error message 
-                MessageBox.Show(reminder.vaildate_input(temp_userTask));
-                return;
-
-            }
-            // if all vaidated , then check for the task 
-
-            if (temp_userTask.Contains("add task"))
-
-            {
-                // Replase the found task on add task 
-                string get_description = temp_userTask.Replace("add task", "");
-
-                // add task  message to list view 
-                chat_append.Items.Add("task added with description: " + get_description + " \nWould you like to set a reminder?");
-
-                // the asign the task to globle varible 
-                hold_task = get_description;
-
-
-
-                // MessageBox.Show("Tak add with description: " + get_description);
-            }
-            else if (temp_userTask.Contains("remind"))
-            {
-                Console.WriteLine("to add task type 'add task' and add description");
-                string hold_day = reminder.get_days(temp_userTask);
-                //check task holder
-                if (hold_day == "days")
+                // if all validated, then check for the task
+                if (temp_userTask.Contains("add task"))
                 {
-                    // get the day and user's input
-                    hold_day = reminder.get_days(temp_userTask);
+                    // Replace the found task on add task
+                    string get_description = temp_userTask.Replace("add task", "");
 
-                    // check if today 
-                    if (hold_day != "today")
+                    // add task message to list view
+                    chat_append.Items.Add("task added with description: " + get_description + " \nWould you like to set a reminder?");
+
+                    // add the task to the list view but get date and time
+                    DateTime date = DateTime.Now.Date;
+                    DateTime time = DateTime.Now.ToLocalTime();
+                    string format_date = date.ToString("yyyy-MM-dd");
+                    chat_append.Items.Add("User : " + get_description + "\n" + format_date + " Time " + time.ToString("HH:mm:ss"));
+
+                    // set list view to auto scroll
+                    chat_append.ScrollIntoView(chat_append.Items[chat_append.Items.Count - 1]);
+
+                    // assign the task to global variable
+                    hold_task = get_description;
+                }
+                else if (temp_userTask.Contains("remind"))
+                {
+                    string hold_day = reminder.get_days(temp_userTask);
+
+                    // check task holder
+                    if (!string.IsNullOrEmpty(hold_task))
                     {
-                        // get the message 
-                        if (reminder.today_date(hold_task, hold_day) != "error")
+                        // get the calculated date
+                        if (hold_day == "today")
                         {
-                            // add to list 
                             chat_append.Items.Add(reminder.today_date(hold_task, hold_day));
                         }
+                        else
+                        {
+                            chat_append.Items.Add("great, i will remind you " + hold_day + " days " + " task " + hold_task);
+                            reminder.get_remindDate(hold_task, hold_day);
+                        }
                     }
-                    else
-                    {
-                        chat_append.Items.Add("sorry, System chatbot failed to set reminder");
-                    }
-
-                    // MessageBox.Show("Remind days are  " + hold_day);
-                }
-                else
-                {
-                    // get the calculated date
-                    if (reminder.get_remindDate(hold_task, hold_day) != "done")
-                    {
-                        // add to list 
-                        chat_append.Items.Add("great, i will remind you " + hold_day +" to task "+ hold_task );
-                    }
-
-                   //   System.Console.Beep()
-                    //  chat_append.Items.Add("No task was set to remind you");
-
-
-
-
-
-
                     else
                     {
                         // show error message
                         System.Console.Beep();
                         chat_append.Items.Add("No task was set to remind you");
                     }
-
+                }
+                else if (temp_userTask.Contains("show remind"))
+                {
+                    chat_append.Items.Add("your reminders are");
+                    chat_append.Items.Add(reminder.get_remind());
+                }
+                else
+                {
+                    // show error message
+                    System.Console.Beep();
+                    chat_append.Items.Add("Sorry, I don't understand your request. Please try again.");
                 }
             }
-            else if (temp_userTask.Contains("show remind"))
-
-            {
-                chat_append.Items.Add("your remind are");
-                chat_append.Items.Add(reminder.get_remind());
-            }// end of else if
             else
             {
-                // show error message 
-                System.Console.Beep();
-                chat_append.Items.Add("Sorry, I don't understand your request. Please try again.");
+                chat_append.Items.Add("Please enter a task or reminder");
             }
         }
+        //method to show the quiz on the buttons
+        private void showQuiz()
+        {
+
+            //check if the user is not done playing
+            if (questionIndex >= quizData.Count)
+            {
+                //show complete message
+                MessageBox.Show("Quiz Complete! You already completed the game with " + currentScore + " score");
+
+                //then reset the game
+                currentScore = 0;
+                questionIndex = 0;
+                DisplayScore.Text = "";
+                showQuiz();
+
+                //stop the execute
+                return;
+            }
+
+            //get the current index quiz
+            correctChoiceButton = null;
+            selectedChoice = null;
+
+            //then get all the questions values
+            var currentQuiz = quizData[questionIndex];
+
+            //displays the question to the user
+            DisplayedQuestion.Text = currentQuiz.Question;
+
+            //add the choices to the buttons
+            var shuffled = currentQuiz.Choices.OrderBy(_ => Guid.NewGuid()).ToList();
+
+            //then add by index
+            FirstChoiceButton.Content = shuffled[0];
+            SecondChoiceButton.Content = shuffled[1];
+            ThirdChoiceButton.Content = shuffled[2];
+            FourthChoiceButton.Content = shuffled[3];
+
+            clearStyle();
+        }
+
+        //method to rest the buttons
+        private void clearStyle()
+        {
+            //use for each to reset
+            foreach (Button choice in new[] { FirstChoiceButton, SecondChoiceButton, ThirdChoiceButton, FourthChoiceButton })
+            {
+                choice.Background = Brushes.LightGray;
+            }
+        }//end of the clear style method
+
+        //method to load the quiz data
+        private void LoadQuizData()
+        {
+            //store info
+            quizData = new List<QuizQuestion>
+        {
+            new QuizQuestion
+            {
+                Question = "What should you do if you receive an email asking for your password?",
+                CorrectChoice = "Report the email as phishing",
+                Choices = new List<string>
+                {
+                    "Reply with your password",
+                    "Delete the email",
+                    "Report the email as phishing",
+                    "Ignore it"
+                }
+            },
+            new QuizQuestion
+            {
+                Question = "What is phishing?",
+                CorrectChoice = "A type of social engineering attack",
+                Choices = new List<string>
+                {
+                    "A type of malware",
+                    "A type of virus",
+                    "A type of social engineering attack",
+                    "A type of firewall"
+                }
+            },
+            new QuizQuestion
+            {
+                Question = "What is a strong password?",
+                CorrectChoice = "A long password with a mix of letters, numbers, and special characters",
+                Choices = new List<string>
+                {
+                    "A short password with only letters",
+                    "A long password with only numbers",
+                    "A long password with a mix of letters, numbers, and special characters",
+                    "A password that is the same for all accounts"
+                }
+            },
+            new QuizQuestion
+            {
+                Question = "Why is two-factor authentication important?",
+                CorrectChoice = "It adds an extra layer of security to your account",
+                Choices = new List<string>
+                {
+                    "It makes your password stronger",
+                    "It adds an extra layer of security to your account",
+                    "It makes it easier to login",
+                    "It is not important"
+                }
+            },
+            new QuizQuestion
+            {
+                Question = "What should you do if you suspect your account has been hacked?",
+                CorrectChoice = "Change your password immediately and report it",
+                Choices = new List<string>
+                {
+                    "Change your password immediately",
+                    "Ignore it and hope it goes away",
+                    "Report it to the authorities",
+                    "Change your password immediately and report it"
+                }
+            },
+            new QuizQuestion
+            {
+                Question = "What is social engineering?",
+                CorrectChoice = "A type of attack that manipulates people into revealing sensitive information",
+                Choices = new List<string>
+                {
+                    "A type of malware",
+                    "A type of virus",
+                    "A type of attack that manipulates people into revealing sensitive information",
+                    "A type of firewall"
+                }
+            },
+            new QuizQuestion
+{
+    Question = "What is safe browsing?",
+    CorrectChoice = "Avoiding suspicious websites and being cautious when clicking on links",
+    Choices = new List<string>
+    {
+        "Visiting any website without worrying about security",
+        "Avoiding suspicious websites and being cautious when clicking on links",
+        "Downloading software from any website",
+        "Sharing personal information on any website"
+    }
+}
+
+
+
+
+    };
+               }//end of load quiz data method
+  private void HandleAnswerSelection(object sender, RoutedEventArgs e)
+        {
+
+            //use sender object name to get the selected button
+            selectedChoice = sender as Button;
+
+            string chosen = selectedChoice.Content.ToString();
+
+            //then check with correct on the current quiz
+            string correct = quizData[questionIndex].CorrectChoice;
+
+            //then check if correct or not by if statement
+            if (chosen == correct)
+            {
+                //then set the button background color
+                selectedChoice.Background = Brushes.Green;
+                //assing to hold
+                correctChoiceButton = selectedChoice;
+            }
+            else
+            {
+                //if incorrect
+                selectedChoice.Background = Brushes.DarkRed;
+                correctChoiceButton = selectedChoice;
+            }
+        }
+        private void HandleNextQuestion(object sender, RoutedEventArgs e)
+        {
+            //check if the user selected one of the choices
+            if (selectedChoice == null)
+            {
+                //then show error message
+                MessageBox.Show("Choose one of the 4 choices");
+            }
+            else
+            {
+                //then add points , and only if correct
+                string chosen = selectedChoice.Content.ToString();
+                string correct = quizData[questionIndex].CorrectChoice;
+
+                //check if correct 
+                if (chosen == correct)
+                {
+                    //then add point
+                    currentScore++;
+                    //then show the score
+                    DisplayScore.Text = "Score : " + currentScore;
+
+                    //then move to the next index question
+                    questionIndex++;
+                    //show the question again for the next one
+                    showQuiz();
+                }
+                else
+                {
+                    //move to the next question 
+                    questionIndex++;
+                    showQuiz();
+                }
+
+            }
+
+
+        }//end of the handle next question event handler
 
 
     }
-}
+}//end of class MainWindow
 
 
 

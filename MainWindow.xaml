@@ -140,6 +140,7 @@
          Height="450" 
           Width="700"
           x:Name="reminder_page"
+                
          Background="OrangeRed"
            Visibility="Hidden"
    
@@ -149,6 +150,7 @@
             Height="300"
             Width="400"
             x:Name="chat_append"
+           
             Margin="0,0,0,145"
                   
            
@@ -185,6 +187,7 @@
             <!--end of the main content grid-->
             <!--Grid quiz  -->
             <Grid 
+               
          Height="450" 
          Width="700"
           x:Name="quiz_page"
@@ -193,16 +196,68 @@
    
    
  >
-                <TextBlock
-          Text="We are QUIZ now"
-          Height="30"
-          Width="300"
-    
-     >
+                <StackPanel
+                    VerticalAlignment="Center"
+        HorizontalAlignment="Center"
+        Width="400"
+        >
+                    <!-- add all required components-->
+
+                    <!--title of the game -->
+                    <TextBlock 
+            Text="Cyber security quiz [game]"
+            HorizontalAlignment="Center"
+            />
+
+                    <TextBlock
+            Text="Question to be asked ?"
+            x:Name="DisplayedQuestion"
+            HorizontalAlignment="Center"
+            />
 
 
-                </TextBlock>
+                    <!-- add the four buttons for selecting answer-->
+                    <Button 
+         x:Name="FirstChoiceButton"
+         Click="HandleAnswerSelection"
+            Padding="20"
+         />
 
+                    <Button 
+            x:Name="SecondChoiceButton"
+            Click="HandleAnswerSelection"
+            Padding="20"
+            />
+
+                    <Button 
+            x:Name="ThirdChoiceButton"
+            Click="HandleAnswerSelection"
+            Padding="20"
+            />
+
+                    <Button
+            x:Name="FourthChoiceButton"
+            Click="HandleAnswerSelection"
+            Padding="20"
+            />
+
+                    <!-- put the score and the next button -->
+                    <Button
+            x:Name="NextQuestionButton"
+            Content="Next"
+            Click="HandleNextQuestion"
+            Padding="20"
+            
+            Background="BurlyWood"
+            />
+
+                    <!-- show the score-->
+                    <TextBlock 
+x:Name="DisplayScore"
+HorizontalAlignment="Right"
+Text="play game first"
+/>
+                </StackPanel>
             </Grid>
             <!--end of the main content grid-->
             <!--Grid activity -->
