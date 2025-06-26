@@ -22,6 +22,7 @@ namespace demo_Application_Chatbot
         string hold_task = string.Empty;
         //call the load quiz method 
         private List<QuizQuestion> quizData;
+       
 
         //variables
         private int questionIndex = 0;
@@ -73,6 +74,9 @@ namespace demo_Application_Chatbot
             quiz_page.Visibility = Visibility.Visible;
         }
 
+
+
+
         private void Activity(object sender, RoutedEventArgs e)
         {
             // hide other page and set chat page visible
@@ -83,6 +87,12 @@ namespace demo_Application_Chatbot
 
             // current page is chat page
             activity_page.Visibility = Visibility.Visible;
+
+            activity_log.Items.Clear();
+            foreach (var activity in activityLog)
+            {
+                activity_log.Items.Add(activity);
+            }
         }
 
         private void Exit(object sender, RoutedEventArgs e)
@@ -370,12 +380,22 @@ namespace demo_Application_Chatbot
                 }
 
             }
+        }
+
+            private List<string> activityLog = new List<string>();
+
+        private void LogActivity(string activity)
+        {
+            activityLog.Add(activity);
+            activity_log.Items.Add(activity);
+            activity_log.ScrollIntoView(activity_log.Items[activity_log.Items.Count - 1]);
+        }
+     
+
+    }//end of the handle next question event handler
 
 
-        }//end of the handle next question event handler
 
-
-    }
 }//end of class MainWindow
 
 
