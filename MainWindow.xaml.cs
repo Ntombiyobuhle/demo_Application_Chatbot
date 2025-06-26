@@ -108,7 +108,7 @@ namespace demo_Application_Chatbot
                 Console.WriteLine("to add task type 'add task' and add description");
                 string hold_day = reminder.get_days(temp_userTask);
                 //check task holder
-                if (hold_task != "days")
+                if (hold_task == "days")
                 {
                     // get the day and user's input
                     hold_day = reminder.get_days(temp_userTask);
@@ -136,7 +136,7 @@ namespace demo_Application_Chatbot
                     if (reminder.get_remindDate(hold_task, hold_day) != "done")
                     {
                         // add to list 
-                        chat_append.Items.Add("great, i will remind you " + hold_day);
+                        chat_append.Items.Add("great, i will remind you " + hold_day );
                     }
 
                    //   System.Console.Beep()
