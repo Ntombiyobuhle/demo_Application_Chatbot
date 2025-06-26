@@ -11,7 +11,7 @@ namespace demo_Application_Chatbot
         public string vaildate_input(string user_input)
         {
             // check if the user input is empty or not 
-            if (user_input != "")
+            if (user_input != "today")
 
             {
                 //  return found 
