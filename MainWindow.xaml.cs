@@ -38,7 +38,7 @@ namespace demo_Application_Chatbot
             //call the load quiz method
             LoadQuizData();
             showQuiz();
-
+           
         }
 
 
@@ -75,7 +75,14 @@ namespace demo_Application_Chatbot
         }
 
 
+        private List<string> activityLog = new List<string>();
 
+        private void LogActivity(string activity)
+        {
+            activityLog.Add(activity);
+            activity_log.Items.Add(activity);
+            activity_log.ScrollIntoView(activity_log.Items[activity_log.Items.Count - 1]);
+        }
 
         private void Activity(object sender, RoutedEventArgs e)
         {
@@ -84,7 +91,7 @@ namespace demo_Application_Chatbot
             reminder_page.Visibility = Visibility.Hidden;
             quiz_page.Visibility = Visibility.Hidden;
 
-
+            chat_append.ScrollIntoView(chat_append.Items[chat_append.Items.Count - 1]);
             // current page is chat page
             activity_page.Visibility = Visibility.Visible;
 
@@ -115,12 +122,15 @@ namespace demo_Application_Chatbot
                     string get_description = temp_userTask.Replace("add task", "");
 
                     // add task message to list view
+                    LogActivity("you added a task: " + get_description);
                     chat_append.Items.Add("task added with description: " + get_description + " \nWould you like to set a reminder?");
 
                     // add the task to the list view but get date and time
                     DateTime date = DateTime.Now.Date;
                     DateTime time = DateTime.Now.ToLocalTime();
                     string format_date = date.ToString("yyyy-MM-dd");
+                   
+                    activityLog.Add("you added a task: " + get_description + " on " + format_date + " at " + time.ToString("HH:mm:ss"));
                     chat_append.Items.Add("User : " + get_description + "\n" + format_date + " Time " + time.ToString("HH:mm:ss"));
 
                     // set list view to auto scroll
@@ -143,6 +153,7 @@ namespace demo_Application_Chatbot
                         }
                         else
                         {
+                            LogActivity("you set a reminder for " + hold_day + " days");
                             chat_append.Items.Add("great, i will remind you " + hold_day + " days " + " task " + hold_task);
                             reminder.get_remindDate(hold_task, hold_day);
                         }
@@ -151,11 +162,13 @@ namespace demo_Application_Chatbot
                     {
                         // show error message
                         System.Console.Beep();
+                        activityLog.Add("you tried to set a reminder without a task");
                         chat_append.Items.Add("No task was set to remind you");
                     }
                 }
                 else if (temp_userTask.Contains("show remind"))
                 {
+                    activityLog.Add("you requested to show reminders");
                     chat_append.Items.Add("your reminders are");
                     chat_append.Items.Add(reminder.get_remind());
                 }
@@ -163,12 +176,14 @@ namespace demo_Application_Chatbot
                 {
                     // show error message
                     System.Console.Beep();
+                    activityLog.Add("you entered an invalid command");
                     chat_append.Items.Add("Sorry, I don't understand your request. Please try again.");
                 }
             }
             else
             {
                 chat_append.Items.Add("Please enter a task or reminder");
+                activityLog.Add("you tried to set a reminder without entering a task or reminder");
             }
         }
         //method to show the quiz on the buttons
@@ -180,7 +195,7 @@ namespace demo_Application_Chatbot
             {
                 //show complete message
                 MessageBox.Show("Quiz Complete! You already completed the game with " + currentScore + " score");
-
+                activityLog.Add("you completed the quiz with a score of " + currentScore);
                 //then reset the game
                 currentScore = 0;
                 questionIndex = 0;
@@ -381,16 +396,31 @@ namespace demo_Application_Chatbot
 
             }
         }
-
-            private List<string> activityLog = new List<string>();
-
-        private void LogActivity(string activity)
+        private void ExecuteActivityCommand(object sender, RoutedEventArgs e)
         {
-            activityLog.Add(activity);
-            activity_log.Items.Add(activity);
-            activity_log.ScrollIntoView(activity_log.Items[activity_log.Items.Count - 1]);
+            string command = activity_command.Text.ToLower();
+            if (command == "show activity log")
+            {
+                activity_log.Items.Clear();
+                foreach (var activity in activityLog)
+                {
+                    activity_log.Items.Add(activity);
+                }
+            }
+            else
+            {
+                activity_log.Items.Add("Invalid command. Type 'show activity log' to view history.");
+            }
+            activity_command.Clear();
         }
-     
+
+        private void DeleteHistory(object sender, RoutedEventArgs e)
+        {
+            activityLog.Clear();
+            activity_log.Items.Clear();
+        }
+
+
 
     }//end of the handle next question event handler
 
